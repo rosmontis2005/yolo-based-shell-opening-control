@@ -1,30 +1,30 @@
-from ultralytics import YOLO
 from pathlib import Path
-import cv2
 
-# 1. 加载你训练好的模型 (注意路径，runs文件夹是自动生成的)
-# 这里的路径可能需要根据实际生成的文件夹修改，比如 runs/detect/train2/...
+import cv2
+from ultralytics import YOLO
+
+# 1. Load the most recent trained model.
 project_root = Path(__file__).resolve().parent
 weights_candidates = sorted(
     (project_root / "runs" / "detect").glob("train*/weights/best.pt"),
     key=lambda p: p.stat().st_mtime,
 )
 if not weights_candidates:
-    raise FileNotFoundError("未找到 best.pt，请先完成训练。")
+    raise FileNotFoundError("best.pt was not found. Please train the model first.")
 model = YOLO(str(weights_candidates[-1]))
 
-# 2. 进行预测
-# source 可以是图片路径、视频路径，甚至填 '0' 调用摄像头
+# 2. Run inference on an image.
+# source can be an image path, video path, or camera index like "0".
 source_image = project_root / "runs" / "test_image" / "1.jpg"
 results = model.predict(source=str(source_image), show=False, save=False, conf=0.3)
 
 result = results[0]
 image = cv2.imread(str(source_image))
 if image is None:
-    raise FileNotFoundError(f"无法读取图片: {source_image}")
+    raise FileNotFoundError(f"Cannot read image: {source_image}")
 
 if result.boxes is None or len(result.boxes) == 0:
-    print("未检测到目标")
+    print("No target detected")
 else:
     confs = result.boxes.conf
     max_idx = int(confs.argmax().item())
@@ -48,5 +48,5 @@ else:
     out_path = out_dir / source_image.name
     cv2.imwrite(str(out_path), image)
 
-    print(f"检测到目标，x={x_center:.2f}")
-    print(f"结果已保存: {out_path}")
+    print(f"Target detected, x={x_center:.2f}")
+    print(f"Output saved to: {out_path}")
