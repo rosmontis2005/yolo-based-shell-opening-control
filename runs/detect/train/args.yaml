@@ -1,7 +1,7 @@
 task: detect
 mode: train
 model: yolo26n.pt
-data: C:\Users\rosmo\Desktop\Project\CONTEST\model_02.2\data.yaml
+data: data.yaml
 epochs: 500
 time: null
 patience: 100
@@ -106,4 +106,4 @@ auto_augment: randaugment
 erasing: 0.4
 cfg: null
 tracker: botsort.yaml
-save_dir: C:\Users\rosmo\Desktop\Project\CONTEST\model_02.2\runs\detect\train
+save_dir: runs/detect/train

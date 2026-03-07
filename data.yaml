@@ -1,5 +1,5 @@
 
-path: C:/Users/rosmo/Desktop/Project/CONTEST/model_02.2
+path: .
 # 璁粌闆嗗拰楠岃瘉闆嗙殑鐩稿璺緞 (鐩稿浜庝笂闈㈢�? path)
 train: images/train
 val: images/val

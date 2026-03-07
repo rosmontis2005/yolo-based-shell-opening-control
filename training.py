@@ -1,4 +1,5 @@
 from ultralytics import YOLO
+from pathlib import Path
 
 # ... 下面是你原本的 model = YOLO(...) 代码 ...
 # 1. 加载模型
@@ -8,12 +9,15 @@ model = YOLO('yolo26n.pt')
 
 # 2. 开始训练
 if __name__ == '__main__':
+    project_root = Path(__file__).resolve().parent
+    data_yaml = project_root / "data.yaml"
+
     # data: 指向你的配置文件
     # epochs: 训练轮数，初学可以设 50-100
     # imgsz: 图片大小，通常是 640
     # batch: 显存不够就调小，比如 8 或 4，显存大就 16 或 32
     # device: '0' 表示使用第一块 GPU，如果没有 GPU 则填 'cpu'
-    model.train(data=r'C:\Users\rosmo\Desktop\Project\CONTEST\model_02.2\data.yaml',
+    model.train(data=str(data_yaml),
                 epochs=500,
                 imgsz=640,
                 batch=8,
