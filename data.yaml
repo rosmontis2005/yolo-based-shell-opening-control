@@ -1,0 +1,11 @@
+
+path: C:/Users/rosmo/Desktop/Project/CONTEST/model_02.2
+# 璁粌闆嗗拰楠岃瘉闆嗙殑鐩稿璺緞 (鐩稿浜庝笂闈㈢�? path)
+train: images/train
+val: images/val
+
+# 绫诲埆鏁伴噺 (姣斿浣犲彧妫€娴� '鐚�' 鍜� '鐙�'锛岃繖閲屽氨鍐� 2)
+nc: 1
+
+# 绫诲埆鍚嶇�? (蹇呴』鍜�? labelImg 閲岀�? classes.txt 椤哄簭涓€鑷达紒ID 0 鏄涓€涓紝ID 1 鏄浜屼釜)
+names: ['0']
