@@ -16,7 +16,7 @@ model = YOLO(str(weights_candidates[-1]))
 # 2. Run inference on an image.
 # source can be an image path, video path, or camera index like "0".
 source_image = project_root / "runs" / "test_image" / "1.jpg"
-results = model.predict(source=str(source_image), show=False, save=False, conf=0.3)
+results = model.predict(source=str(source_image), show=False, save=False, conf=0.1)
 
 result = results[0]
 image = cv2.imread(str(source_image))
