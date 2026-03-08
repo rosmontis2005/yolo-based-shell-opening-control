@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 
 import cv2
 from ultralytics import YOLO
@@ -13,16 +13,19 @@ if not weights_candidates:
     raise FileNotFoundError("best.pt was not found. Please train the model first.")
 model = YOLO(str(weights_candidates[-1]))
 
-# 2. Run inference on an image.
-# source can be an image path, video path, or camera index like "0".
-source_image = project_root / "runs" / "test_image" / "1.jpg"
-results = model.predict(source=str(source_image), show=False, save=False, conf=0.1)
+# 2. Read one frame from camera 0 and run inference.
+cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    raise RuntimeError("Cannot open camera 0")
+
+ok, image = cap.read()
+cap.release()
+if not ok or image is None:
+    raise RuntimeError("Cannot read frame from camera 0")
+
+results = model.predict(source=image, show=False, save=False, conf=0.1)
 
 result = results[0]
-image = cv2.imread(str(source_image))
-if image is None:
-    raise FileNotFoundError(f"Cannot read image: {source_image}")
-
 if result.boxes is None or len(result.boxes) == 0:
     print("No target detected")
 else:
@@ -45,7 +48,7 @@ else:
 
     out_dir = project_root / "runs" / "detect" / "predict_best"
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / source_image.name
+    out_path = out_dir / "camera0.jpg"
     cv2.imwrite(str(out_path), image)
 
     print(f"Target detected, x={x_center:.2f}")
