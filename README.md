@@ -16,7 +16,9 @@
 ```text
 yolo-based-shell-opening-control/
 ├── arduino/
-│   └── servo_detect_test/
+│   ├── servo_detect_test/
+│   ├── stepper_basic_test/
+│   └── stepper_detect_control/
 ├── configs/
 │   └── data.yaml
 ├── datasets/
@@ -24,7 +26,8 @@ yolo-based-shell-opening-control/
 │       ├── images/
 │       └── labels/
 ├── docs/
-│   └── arduino_servo_test.md
+│   ├── arduino_servo_test.md
+│   └── arduino_stepper_test.md
 ├── models/
 │   └── yolo26n.pt
 ├── outputs/
@@ -35,6 +38,7 @@ yolo-based-shell-opening-control/
 ├── src/
 │   ├── camera_scan.py
 │   ├── control_servo.py
+│   ├── control_stepper.py
 │   ├── detect_once.py
 │   ├── project_paths.py
 │   └── train_model.py
@@ -145,6 +149,34 @@ python3 src/control_servo.py --dry-run --camera-index 1
 ```
 
 详细硬件说明见 [docs/arduino_servo_test.md](/Users/rosmontis/Projects/CV/yolo-based-shell-opening-control/docs/arduino_servo_test.md)。
+
+### 5. 联动 Arduino 丝杆步进电机
+
+先查看可用串口：
+
+```bash
+python3 src/control_stepper.py --list-ports
+```
+
+执行一次检测并发送目标位置（当前映射临时固定为 1）：
+
+```bash
+python3 src/control_stepper.py --port COM3 --baud 9600 --camera-index 1
+```
+
+只检测与映射，不发串口：
+
+```bash
+python3 src/control_stepper.py --dry-run --camera-index 1
+```
+
+跳过检测，直接发送手动目标位置：
+
+```bash
+python3 src/control_stepper.py --port COM3 --manual-position 1200
+```
+
+详细硬件说明见 [docs/arduino_stepper_test.md](/Users/rosmontis/Projects/CV/yolo-based-shell-opening-control/docs/arduino_stepper_test.md)。
 
 ## 路径管理说明
 
