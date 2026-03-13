@@ -1,0 +1,3 @@
+ultralytics>=8.3
+opencv-python>=4.10
+pyserial>=3.5

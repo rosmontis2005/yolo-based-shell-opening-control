@@ -1,11 +1,32 @@
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
 # Python cache
 __pycache__/
-*.pyc
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
 
-# Log files
+# Virtual environments
+.venv/
+venv/
+
+# Logs
 *.log
 
-# Dataset images
-*.jpg
-*.jpeg
-*.txt
+# Local datasets
+datasets/**/images/
+datasets/**/labels/
+*.cache
+
+# Local model weights
+models/*.pt
+
+# Generated outputs
+outputs/
+runs/
+shot/

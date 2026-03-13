@@ -1,0 +1,10 @@
+path: ../datasets/shell_opening
+# Relative paths under the dataset root defined by "path"
+train: images/train
+val: images/val
+
+# Number of classes
+nc: 1
+
+# Class names in the same order as label IDs
+names: ['0']
