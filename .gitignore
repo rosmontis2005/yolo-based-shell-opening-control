@@ -5,6 +5,10 @@ __pycache__/
 # Log files
 *.log
 
+# Tool-local config/cache
+.ultralytics/
+Ultralytics/
+
 # Dataset images
 *.jpg
 *.jpeg

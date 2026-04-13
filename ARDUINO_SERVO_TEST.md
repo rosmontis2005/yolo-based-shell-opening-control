@@ -61,7 +61,30 @@ python control_servo.py --port COM3 --baud 9600 --camera-index 1
 - 检测到目标 -> 发送 `1` -> 舵机转到 90°
 - 未检测到目标 -> 发送 `0` -> 舵机回到 0°
 
-### 6.3 只做检测不发串口
+默认发送后会保持串口打开 3 秒，方便观察舵机是否动作：
+
+```powershell
+python control_servo.py --port COM3 --baud 9600 --camera-index 1 --hold-seconds 5
+```
+
+### 6.3 绕过 YOLO，直接测试舵机/串口
+如果检测结果正常但舵机不动，先直接发舵机命令：
+
+```powershell
+python control_servo.py --port COM3 --baud 9600 --force-command 1 --hold-seconds 5
+```
+
+应该转到 90°。
+
+```powershell
+python control_servo.py --port COM3 --baud 9600 --force-command 0 --hold-seconds 5
+```
+
+应该回到 0°。
+
+如果这两条也没有动作，优先检查 Arduino 程序是否烧录成功、串口号是否正确、舵机信号线是否接 D9、舵机电源是否足够，以及外部电源 GND 是否和 Arduino GND 共地。
+
+### 6.4 只做检测不发串口
 ```powershell
 python control_servo.py --dry-run --camera-index 1
 ```

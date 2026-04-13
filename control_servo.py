@@ -10,6 +10,10 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, "reconfigure"):
+        stream.reconfigure(errors="replace")
+
 
 def import_pyserial():
     try:
@@ -62,18 +66,41 @@ def run_detection(detect_script: Path, camera_index: int, conf: float) -> dict:
     raise RuntimeError(f"Detection output does not contain valid JSON: {stdout}")
 
 
-def send_command(port: str, baud: int, detected: bool) -> tuple[str, str]:
+def read_serial_lines(ser, wait_seconds: float) -> list[str]:
+    deadline = time.monotonic() + wait_seconds
+    lines = []
+
+    while time.monotonic() < deadline:
+        line = ser.readline().decode("utf-8", errors="replace").strip()
+        if line:
+            lines.append(line)
+            if line.startswith("OK:") or line.startswith("ERR:"):
+                break
+
+    return lines
+
+
+def send_command(
+    port: str,
+    baud: int,
+    detected: bool,
+    hold_seconds: float,
+    startup_wait_seconds: float,
+) -> tuple[str, list[str]]:
     serial, _ = import_pyserial()
     command = "1\n" if detected else "0\n"
 
-    with serial.Serial(port=port, baudrate=baud, timeout=2) as ser:
+    with serial.Serial(port=port, baudrate=baud, timeout=0.1) as ser:
         # Many Arduino boards reset after opening serial.
-        time.sleep(2)
+        time.sleep(startup_wait_seconds)
+        ready_lines = read_serial_lines(ser, wait_seconds=0.2)
         ser.write(command.encode("utf-8"))
         ser.flush()
-        ack = ser.readline().decode("utf-8", errors="replace").strip()
+        ack_lines = read_serial_lines(ser, wait_seconds=2)
+        if hold_seconds > 0:
+            time.sleep(hold_seconds)
 
-    return command.strip(), ack
+    return command.strip(), ready_lines + ack_lines
 
 
 def print_ports() -> None:
@@ -97,6 +124,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--camera-index", type=int, default=1)
     parser.add_argument("--conf", type=float, default=0.1)
     parser.add_argument("--detect-script", default="test.py")
+    parser.add_argument(
+        "--force-command",
+        choices=("0", "1"),
+        help="Skip detection and send a raw servo command for serial/servo testing.",
+    )
+    parser.add_argument(
+        "--hold-seconds",
+        type=float,
+        default=3,
+        help="Keep the serial port open briefly after sending the command.",
+    )
+    parser.add_argument(
+        "--startup-wait-seconds",
+        type=float,
+        default=2,
+        help="Wait after opening serial because many Arduino boards reset on connect.",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Run detection only")
     parser.add_argument(
         "--list-ports",
@@ -113,21 +157,25 @@ def main() -> None:
         print_ports()
         return
 
-    detect_script = (PROJECT_ROOT / args.detect_script).resolve()
-    if not detect_script.exists():
-        raise FileNotFoundError(f"Detection script not found: {detect_script}")
+    if args.force_command is None:
+        detect_script = (PROJECT_ROOT / args.detect_script).resolve()
+        if not detect_script.exists():
+            raise FileNotFoundError(f"Detection script not found: {detect_script}")
 
-    result = run_detection(
-        detect_script=detect_script,
-        camera_index=args.camera_index,
-        conf=args.conf,
-    )
+        result = run_detection(
+            detect_script=detect_script,
+            camera_index=args.camera_index,
+            conf=args.conf,
+        )
 
-    detected = bool(result.get("detected", False))
-    print(f"Detection result: detected={detected}, confidence={result.get('confidence')}")
-    print(f"Input frame: {result.get('input_frame')}")
-    if result.get("output_frame"):
-        print(f"Output frame: {result['output_frame']}")
+        detected = bool(result.get("detected", False))
+        print(f"Detection result: detected={detected}, confidence={result.get('confidence')}")
+        print(f"Input frame: {result.get('input_frame')}")
+        if result.get("output_frame"):
+            print(f"Output frame: {result['output_frame']}")
+    else:
+        detected = args.force_command == "1"
+        print(f"Forced servo command: {args.force_command}")
 
     if args.dry_run:
         print("Dry-run mode: no serial command sent")
@@ -136,11 +184,17 @@ def main() -> None:
     if not args.port:
         raise ValueError("--port is required unless --dry-run or --list-ports is used")
 
-    command, ack = send_command(port=args.port, baud=args.baud, detected=detected)
+    command, replies = send_command(
+        port=args.port,
+        baud=args.baud,
+        detected=detected,
+        hold_seconds=args.hold_seconds,
+        startup_wait_seconds=args.startup_wait_seconds,
+    )
     angle = 90 if detected else 0
     print(f"Sent command: {command} (servo target angle: {angle} deg)")
-    if ack:
-        print(f"Arduino reply: {ack}")
+    for reply in replies:
+        print(f"Arduino reply: {reply}")
 
 
 if __name__ == "__main__":

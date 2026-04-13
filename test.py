@@ -2,16 +2,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+os.environ.setdefault("YOLO_CONFIG_DIR", str(PROJECT_ROOT / ".ultralytics"))
 
 import cv2
 from ultralytics import YOLO
 
 
 def run_detection(camera_index: int, conf: float) -> dict:
-    project_root = Path(__file__).resolve().parent
     weights_candidates = sorted(
-        (project_root / "runs" / "detect").glob("train*/weights/best.pt"),
+        (PROJECT_ROOT / "runs" / "detect").glob("train*/weights/best.pt"),
         key=lambda p: p.stat().st_mtime,
     )
     if not weights_candidates:
@@ -28,7 +31,7 @@ def run_detection(camera_index: int, conf: float) -> dict:
     if not ok or image is None:
         raise RuntimeError(f"Cannot read frame from camera {camera_index}")
 
-    shot_dir = project_root / "shot"
+    shot_dir = PROJECT_ROOT / "shot"
     shot_dir.mkdir(parents=True, exist_ok=True)
     input_shot_path = shot_dir / f"camera{camera_index}_input.jpg"
     cv2.imwrite(str(input_shot_path), image)
@@ -65,7 +68,7 @@ def run_detection(camera_index: int, conf: float) -> dict:
         2,
     )
 
-    out_dir = project_root / "runs" / "detect" / "predict_best"
+    out_dir = PROJECT_ROOT / "runs" / "detect" / "predict_best"
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"camera{camera_index}.jpg"
     cv2.imwrite(str(out_path), image)
